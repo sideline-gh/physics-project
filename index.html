@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Physics Wordle GIANT</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            background-color: #121213;
+            color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header { text-align: center; padding: 10px 0; flex-shrink: 0; }
+        h1 { font-size: 2.8rem; margin: 0; color: #538d4e; text-transform: uppercase; }
+        #message { font-size: 1.3rem; color: #818384; margin-top: 5px; height: 30px; }
+
+        main {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        #board { display: grid; gap: 8px; justify-content: center; }
+
+        .cell {
+            width: 75px; height: 75px;
+            border: 3px solid #3a3a3c;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 3rem; font-weight: bold; text-transform: uppercase;
+        }
+
+        .flip { animation: flip-cell 0.6s ease forwards; }
+        @keyframes flip-cell {
+            0% { transform: rotateX(0); }
+            50% { transform: rotateX(90deg); }
+            100% { transform: rotateX(0); }
+        }
+        .correct { background-color: #538d4e !important; border-color: #538d4e !important; }
+        .present { background-color: #b59f3b !important; border-color: #b59f3b !important; }
+        .absent { background-color: #3a3a3c !important; border-color: #3a3a3c !important; }
+
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.96);
+            display: none; justify-content: center; align-items: center;
+            z-index: 100;
+        }
+        #modal {
+            background: #1e1e1f; 
+            width: 95%; height: 85%; padding: 40px;
+            border-radius: 30px; text-align: center;
+            border: 4px solid #538d4e;
+            display: flex; flex-direction: column;
+            justify-content: space-around; align-items: center;
+            box-sizing: border-box;
+        }
+        #modal h2 { color: #538d4e; font-size: 4.5rem; margin: 0; text-transform: uppercase; }
+        #modal p { 
+            font-size: 2.8rem; line-height: 1.3; color: #ffffff; 
+            text-align: center; font-weight: normal; margin: 20px 0; max-width: 90%;
+        }
+        #modal button {
+            padding: 20px 60px; font-size: 2.2rem; 
+            background: #538d4e; border: none; color: white; 
+            border-radius: 15px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="title">Физикалық Wordle</h1>
+        <div id="message">Сөзді енгізіңіз</div>
+    </header>
+
+    <main>
+        <div id="board"></div>
+    </main>
+
+    <div id="modal-overlay">
+        <div id="modal">
+            <h2 id="modal-word">СЛОВО</h2>
+            <p id="modal-desc">Описание...</p>
+            <button id="next-btn">Келесі деңгей</button>
+        </div>
+    </div>
+
+    <script>
+        const words = ['ЛАЗЕР', 'ЯДРО', 'ФОЛЬГА', 'ФОТОН', 'РЕЗЕРФОРД', 'КЕРНЕУ', 'РАДИАЦИЯ', 'ТОМСОН', 'ОПТИКА', 'РЕНТГЕН', 'МРТ', 'ФОТОСИНТЕЗ'];
+        
+        const descriptions = {
+            'ЛАЗЕР': 'Лазер — энергияны жіңішке, шоғырланған және бағытталған жарық сәулесіне айналдыратын құрылғы. Ол — оптикалық кванттық генератор.',
+            'ЯДРО': 'Атом ядросы — атомның орталық бөлігі, онда оның негізгі массасы мен оң заряды шоғырланған. Ол протондар мен нейтрондардан тұрады.',
+            'ФОЛЬГА': 'Лазерлік тәжірибелерде жұқа металл фольга нысана ретінде қолданылады. Оны атқылау арқылы бөлшектерді жеделдетуге болады.',
+            'ФОТОН': 'Фотон — жарықтың ең кіші бөлінбейтін бөлшегі. Оның массасы жоқ және ол әрқашан жарық жылдамдығымен қозғалады.',
+            'РЕЗЕРФОРД': 'Эрнест Резерфорд — атом ядросын ашқан ғалым. Ол альфа-бөлшектердің шашырауы арқылы атом құрылысын дәлелдеді.',
+            'КЕРНЕУ': 'Лазердің жұмыс істеуі үшін қажетті электр кернеуі. Жоғары кернеу газ разрядты лазерлерді іске қосу үшін өте маңызды.',
+            'РАДИАЦИЯ': 'Сәулелену процесі. Лазер — бұл когерентті электромагниттік радиацияның бір түрі болып табылады.',
+            'ТОМСОН': 'Джозеф Джон Томсон — электронды ашқан және атомның алғашқы «пудинг» моделін ұсынған физик.',
+            'ОПТИКА': 'Оптика — физиканың жарық құбылыстарын, оның қасиеттерін және затпен әрекеттесуін зерттейтін бөлімі.',
+            'РЕНТГЕН': 'Рентген сәулелері — электромагниттік толқындардың бір түрі. Медицинада және физикалық зерттеулерде кеңінен қолданылады.',
+            'МРТ': 'Магнитті-резонанстық томография — ядролық магниттік резонанс құбылысына негізделген заманауи медициналық зерттеу әдісі.',
+            'ФОТОСИНТЕЗ': 'Жарық энергиясының әсерінен өсімдіктерде органикалық заттардың түзілу процесі. Бұл табиғаттағы маңызды фотохимиялық процесс.'
+        };
+
+        let level = 0, row = 0, col = 0, gameOver = false;
+
+        function initBoard() {
+            const boardUI = document.getElementById('board');
+            boardUI.innerHTML = '';
+            const currentWord = words[level];
+            const wordLen = currentWord.length;
+            boardUI.style.gridTemplateColumns = `repeat(${wordLen}, 75px)`;
+            
+            for (let i = 0; i < 6 * wordLen; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${Math.floor(i/wordLen)}-${i%wordLen}`;
+                boardUI.appendChild(cell);
+            }
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('title').innerText = `Деңгей ${level + 1} / ${words.length}`;
+            row = 0; col = 0; gameOver = false;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (gameOver) return;
+            const wordLen = words[level].length;
+            if (e.key === 'Enter') checkWord();
+            else if (e.key === 'Backspace' && col > 0) {
+                col--;
+                document.getElementById(`cell-${row}-${col}`).innerText = '';
+            } else if (/^[а-яА-ЯёЁ]$/.test(e.key) && col < wordLen) {
+                document.getElementById(`cell-${row}-${col}`).innerText = e.key.toUpperCase();
+                col++;
+            }
+        });
+
+        async function checkWord() {
+            const wordLen = words[level].length;
+            if (col < wordLen) return;
+            let guess = '';
+            for (let c = 0; c < wordLen; c++) guess += document.getElementById(`cell-${row}-${c}`).innerText;
+            let target = words[level];
+            let targetArr = target.split('');
+            let status = Array(wordLen).fill('absent');
+
+            for (let i = 0; i < wordLen; i++) {
+                if (guess[i] === target[i]) { status[i] = 'correct'; targetArr[i] = null; }
+            }
+            for (let i = 0; i < wordLen; i++) {
+                if (status[i] !== 'correct' && targetArr.includes(guess[i])) {
+                    status[i] = 'present'; targetArr[targetArr.indexOf(guess[i])] = null;
+                }
+            }
+
+            gameOver = true; 
+            for (let c = 0; c < wordLen; c++) {
+                let cell = document.getElementById(`cell-${row}-${c}`);
+                cell.classList.add('flip');
+                setTimeout(() => cell.classList.add(status[c]), 300);
+                await new Promise(r => setTimeout(r, 150));
+            }
+
+            if (guess === target) {
+                setTimeout(() => showModal(target), 500);
+            } else {
+                row++; col = 0; gameOver = false;
+                if (row === 6) alert("Ойын аяқталды! Сөз: " + target);
+            }
+        }
+
+        function showModal(word) {
+            document.getElementById('modal-word').innerText = word;
+            document.getElementById('modal-desc').innerText = descriptions[word];
+            document.getElementById('modal-overlay').style.display = 'flex';
+            const btn = document.getElementById('next-btn');
+            if (level < words.length - 1) {
+                btn.innerText = "Келесі деңгей";
+                btn.onclick = () => { level++; initBoard(); };
+            } else {
+                btn.innerText = "Ойынды аяқтау";
+                btn.onclick = () => { alert("Құттықтаймыз! Сіз нағыз физиксіз!"); location.reload(); };
+            }
+        }
+        initBoard();
+    </script>
+</body>
+</html>
