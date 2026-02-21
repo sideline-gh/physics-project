@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Физика Wordle</title>
+    <title>Физика Wordle + Energy</title>
     <style>
         html, body {
             height: 100%; margin: 0; background-color: #121213; color: white;
             font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column; overflow: hidden;
         }
         
-        #dots-container { 
-            display: flex; gap: 15px; justify-content: center; 
-            margin: 15px 0; min-height: 30px; 
-        }
-        .dot { 
-            width: 25px; height: 25px; border-radius: 50%; 
-            border: 3px solid #3a3a3c; background: transparent; transition: 0.4s;
-        }
-        .dot.active { 
-            background-color: #538d4e; border-color: #58a351; 
+        header { text-align: center; padding: 15px; flex-shrink: 0; position: relative; border-bottom: 1px solid #3a3a3c; }
+        
+        #energy-container {
+            font-size: 1.8rem; font-weight: medium; color: #ffeb3b; margin: 20px 0;
+            display: none; transition: 0.3s;
         }
 
-        header { text-align: center; padding: 20px; flex-shrink: 0; position: relative; }
+        #dots-container { 
+            display: flex; gap: 15px; justify-content: center;  min-height: 25px; 
+        }
+        .dot { 
+            width: 20px; height: 20px; border-radius: 50%; 
+            border: 3px solid #3a3a3c; background: transparent; transition: 0.4s;
+        }
+        .dot.active { background-color: #538d4e; border-color: #58a351; }
+
         #back-btn { 
-            position: absolute; left: 30px; top: 30px; display: none;
-            background: #3a3a3c; border: none; color: white; padding: 15px 30px;
-            border-radius: 10px; cursor: pointer; font-size: 1.5rem; font-weight: bold;
+            position: absolute; left: 20px; top: 20px; display: none;
+            background: #3a3a3c; border: none; color: white; padding: 10px 20px;
+            border-radius: 10px; cursor: pointer; font-size: 1.2rem; font-weight: medium;
             z-index: 10;
         }
 
@@ -34,56 +37,69 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;
         }
         .menu-btn {
-            width: 450px; max-width: 90%; padding: 30px; margin: 15px; font-size: 2.2rem;
-            border: none; border-radius: 25px; cursor: pointer; color: white; transition: 0.3s; font-weight: bold;
+            width: 450px; max-width: 90%; padding: 20px; margin: 10px; font-size: 1.8rem;
+            border: none; border-radius: 20px; cursor: pointer; color: white; transition: 0.3s; font-weight: bold;
         }
-        .easy-btn { background: #538d4e; }
-        .medium-btn { background: #b59f3b; }
-        .hard-btn { background: #af4d4d; }
+        .easy-btn { background: #538d4e;}
+        .medium-btn { background: #b59f3b;}
+        .hard-btn { background: #af4d4d;}
+        .formula-btn { background: #2196f3; }
         .menu-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
 
-        #game-screen { display: none; flex-direction: column; align-items: center; flex-grow: 1; overflow-y: auto; }
-        #board { display: grid; gap: 10px; justify-content: center; margin-top: 20px; padding-bottom: 20px; }
+        #game-screen { display: none; flex-direction: column; align-items: center; flex-grow: 1; overflow-y: auto; width: 100%;}
+        
+        /* Wordle Styles */
+        #board { display: grid; gap: 8px; justify-content: center; margin-top: 15px; padding-bottom: 20px; }
         .cell {
-            width: 70px; height: 70px; border: 4px solid #3a3a3c;
+            width: 65px; height: 65px; border: 3px solid #3a3a3c;
             display: flex; justify-content: center; align-items: center;
-            font-size: 3rem; font-weight: bold; text-transform: uppercase;
+            font-size: 2.5rem; font-weight: bold; text-transform: uppercase;
         }
-
         .correct { background-color: #538d4e !important; border-color: #538d4e !important; }
         .present { background-color: #b59f3b !important; border-color: #b59f3b !important; }
         .absent { background-color: #3a3a3c !important; border-color: #3a3a3c !important; }
         .flip { animation: flip-cell 0.6s ease forwards; }
         @keyframes flip-cell { 50% { transform: rotateX(90deg); } }
 
+        /* Quiz Styles */
+        #quiz-container { display: none; flex-direction: column; align-items: center; width: 90%; max-width: 600px; margin-top: 20px; }
+        #quiz-question { font-size: 2.5rem; text-align: center; margin-bottom: 10px; font-weight: medium; color: #fff; padding: 40px; width: 100%;}
+        .quiz-option {
+            width: 100%; background: #1e1e1f; border: 2px solid #2196f3; color: white;
+            padding: 25px; margin: 8px 0; font-size: 2rem; border-radius: 20px;
+            cursor: pointer; transition: 0.2s; text-align: left; font-weight: medium;
+        }
+        .quiz-option:hover { background: #2196f3; }
+        .quiz-option.wrong { background: #af4d4d; border-color: #af4d4d; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 100;
         }
+        /* Увеличен размер окна и отступы */
         #modal {
-            background: #1e1e1f; width: 95%; max-height: 95%; padding: 30px;
-            border-radius: 30px; text-align: center; border: 5px solid transparent;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            box-sizing: border-box; overflow-y: auto;
+            background: #1e1e1f; width: 95%; max-width: 800px; padding: 50px;
+            border-radius: 30px; text-align: center; border: 4px solid #538d4e;
         }
-        #modal h2 { color: #538d4e; font-size: 4rem; margin: 10px 0; text-transform: uppercase; letter-spacing: 3px; }
-        #modal-img { max-height: 30vh; max-width: 90%; border-radius: 10px; display: none; margin: 15px 0; border: 3px solid #538d4e; object-fit: contain; background: white; }
-        #modal p { 
-            font-size: 2.2rem; margin: 20px 0; line-height: 1.3; max-width: 90%; 
-            color: #fff; font-weight: 500;
-        }
+        /* Увеличен шрифт заголовка */
+        #modal h2 { color: #538d4e; font-size: 3.5rem; margin: 0 0 20px 0; }
+        /* Увеличен шрифт текста-описания */
+        #modal p { font-size: 2.2rem; margin: 25px 0; line-height: 1.4; }
+        /* Увеличен шрифт и размер кнопки */
         #modal button { 
-            padding: 20px 60px; font-size: 2rem; background: #538d4e; 
-            border: none; color: white; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 10px;
+            padding: 20px 50px; font-size: 2rem; background: #538d4e; 
+            border: none; color: white; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 15px;
         }
-        #hint-box { font-size: 1.8rem; color: #b59f3b; margin-top: 10px; font-weight: bold; min-height: 40px; }
+        #hint-box { font-size: 2.5rem; color: #b59f3b; margin-top: 5px; font-weight: bold; min-height: 30px; }
     </style>
 </head>
 <body>
 
     <header>
         <button id="back-btn" onclick="showMenu()">НАЗАД</button>
-        <h1 id="main-title" style="font-size: 3.5rem;">ФИЗИКА WORDLE</h1>
+        <h1 id="main-title" style="font-size: 2.5rem; margin: 0; margin-top:35px">ФИЗИКА WORDLE</h1>
+        <div id="energy-container">ЭНЕРГИЯ: <span id="energy-val">100</span> B</div>
         <div id="dots-container"></div> 
         <div id="hint-box"></div>
     </header>
@@ -92,10 +108,19 @@
         <button class="menu-btn easy-btn" onclick="startGame('easy')">ЛЕГКИЙ</button>
         <button class="menu-btn medium-btn" onclick="startGame('medium')">СРЕДНИЙ</button>
         <button class="menu-btn hard-btn" onclick="startGame('hard')">СЛОЖНЫЙ</button>
+        <button class="menu-btn formula-btn" onclick="startGame('formula')">ФОРМУЛЫ</button>
     </div>
 
     <div id="game-screen">
         <div id="board"></div>
+        
+        <div id="quiz-container">
+            <div id="quiz-question"></div>
+            <button class="quiz-option" id="opt-A" onclick="checkQuizAnswer('A')"></button>
+            <button class="quiz-option" id="opt-B" onclick="checkQuizAnswer('B')"></button>
+            <button class="quiz-option" id="opt-C" onclick="checkQuizAnswer('C')"></button>
+            <button class="quiz-option" id="opt-D" onclick="checkQuizAnswer('D')"></button>
+        </div>
     </div>
 
     <div id="modal-overlay">
@@ -112,6 +137,57 @@
             medium: ['КЕРНЕУ', 'ТОМСОН', 'ОПТИКА', 'ФОЛЬГА', 'РЕНТГЕН'],
             hard: ['РЕЗЕРФОРД', 'РАДИАЦИЯ', 'ФОТОСИНТЕЗ']
         };
+
+        const quizData = [
+            {
+                title: "ЭЙНШТЕЙН ТЕҢДЕУІ",
+                question: "Фотоэффектке арналған Эйнштейн теңдеуін көрсетіңіз:",
+                options: {
+                    A: "hν = A_шығу + mv²/2",
+                    B: "hν = A_шығу - mv²/2",
+                    C: "E = mc² + mv²/2",
+                    D: "A_шығу = hν + mv²/2"
+                },
+                correct: "A",
+                desc: "Жарық квантының (hν) энергиясы электронды металдан жұлып шығаруға және оған кинетикалық энергия беруге жұмсалады."
+            },
+            {
+                title: "ҚЫЗЫЛ ШЕКАРА",
+                question: "Фотоэффекттің қызыл шекарасын (минимал жиілік) анықтайтын дұрыс формуланы табыңыз:",
+                options: {
+                    A: "ν_min = h / A_шығу",
+                    B: "ν_min = A_шығу / h",
+                    C: "λ_max = A_шығу / (h·c)",
+                    D: "ν_min = A_шығу · h"
+                },
+                correct: "B",
+                desc: "Фотоэффект байқалатын ең аз жиілік металдан шығу жұмысының Планк тұрақтысына қатынасымен анықталады."
+            },
+            {
+                title: "МЕХАНИКАЛЫҚ ЖҰМЫС",
+                question: "Күш векторы мен қозғалыс бағыты арасында α бұрышы болған кездегі механикалық жұмыс:",
+                options: {
+                    A: "A = F · s · sin(α)",
+                    B: "A = m · a · s",
+                    C: "A = F · s · cos(α)",
+                    D: "A = F · s / cos(α)"
+                },
+                correct: "C",
+                desc: "Механикалық жұмыс — күштің, орын ауыстырудың және олардың арасындағы бұрыштың косинусының көбейтіндісі."
+            },
+            {
+                title: "КИНЕТИКАЛЫҚ ЭНЕРГИЯ",
+                question: "Ілгерілемелі қозғалыстағы дененің кинетикалық энергиясы:",
+                options: {
+                    A: "E_k = kx² / 2",
+                    B: "E_k = mv² / 2",
+                    C: "E_k = mgh",
+                    D: "E_k = p² / m"
+                },
+                correct: "B",
+                desc: "Кинетикалық энергия дененің массасы мен оның жылдамдығының квадратының көбейтіндісінің жартысына тең."
+            }
+        ];
 
         const descriptions = {
             'ЯДРО': 'Атомның орталық бөлігі. Онда барлық оң заряд пен масса шоғырланған.',
@@ -134,34 +210,42 @@
             'РЕЗЕРФОРД': 'Альфа-бөлшектерді шашыратқан.', 'РАДИАЦИЯ': 'Сәулеленудің бір түрі.', 'ФОТОСИНТЕЗ': 'Күн сәулесі және хлорофилл.'
         };
 
-
         let currentDifficultyKey = 'easy';
         let currentDifficulty = [];
-        let level = 0, row = 0, col = 0, gameOver = false;
+        let isQuizMode = false;
+        let level = 0, row = 0, col = 0, gameOver = false, energy = 100;
 
         function showMenu() {
-            // Скрываем игровые экраны и модалку
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('modal-overlay').style.display = 'none';
-            
-            // Показываем меню
             document.getElementById('menu-screen').style.display = 'flex';
-            
-            // Сбрасываем интерфейс заголовка
             document.getElementById('back-btn').style.display = 'none';
+            document.getElementById('energy-container').style.display = 'none';
             document.getElementById('dots-container').innerHTML = '';
             document.getElementById('hint-box').innerText = '';
         }
 
         function startGame(diff) {
             currentDifficultyKey = diff;
-            currentDifficulty = wordData[diff];
+            isQuizMode = (diff === 'formula');
+            currentDifficulty = isQuizMode ? quizData : wordData[diff];
             level = 0;
+            energy = 100;
+            updateEnergyUI();
+            
             document.getElementById('menu-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'flex';
             document.getElementById('back-btn').style.display = 'block';
+            document.getElementById('energy-container').style.display = 'block';
+            
             createDots();
-            initBoard();
+            initLevel();
+        }
+
+        function updateEnergyUI() {
+            const el = document.getElementById('energy-val');
+            el.innerText = energy;
+            el.style.color = energy <= 40 ? '#ff5252' : '#ffeb3b';
         }
 
         function createDots() {
@@ -178,8 +262,54 @@
         function updateDots() {
             for (let i = 0; i < currentDifficulty.length; i++) {
                 const dot = document.getElementById(`dot-${i}`);
-                if (i < level) dot.classList.add('active');
-                else dot.classList.remove('active');
+                if (dot) {
+                    if (i < level) dot.classList.add('active');
+                    else dot.classList.remove('active');
+                }
+            }
+        }
+
+        function initLevel() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            updateDots();
+            
+            if (isQuizMode) {
+                document.getElementById('board').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'flex';
+                document.getElementById('hint-box').innerText = '';
+                
+                const q = quizData[level];
+                document.getElementById('quiz-question').innerText = q.question;
+                document.getElementById('opt-A').innerText = "A) " + q.options.A;
+                document.getElementById('opt-B').innerText = "B) " + q.options.B;
+                document.getElementById('opt-C').innerText = "C) " + q.options.C;
+                document.getElementById('opt-D').innerText = "D) " + q.options.D;
+                
+                // Reset classes
+                ['A', 'B', 'C', 'D'].forEach(opt => document.getElementById(`opt-${opt}`).classList.remove('wrong'));
+            } else {
+                document.getElementById('board').style.display = 'grid';
+                document.getElementById('quiz-container').style.display = 'none';
+                initBoard();
+            }
+        }
+
+        function checkQuizAnswer(selected) {
+            const q = quizData[level];
+            if (selected === q.correct) {
+                level++;
+                setTimeout(() => showModal(q.title, true, q.desc), 300);
+            } else {
+                const btn = document.getElementById(`opt-${selected}`);
+                btn.classList.add('wrong');
+                setTimeout(() => btn.classList.remove('wrong'), 400);
+                
+                energy -= 20;
+                updateEnergyUI();
+                
+                if (energy <= 0) {
+                    setTimeout(() => showModal(q.title, false), 500);
+                }
             }
         }
 
@@ -187,8 +317,7 @@
             const boardUI = document.getElementById('board');
             boardUI.innerHTML = '';
             const target = currentDifficulty[level];
-            
-            const cellSize = target.length > 8 ? 60 : 80;
+            const cellSize = target.length > 8 ? 55 : 70;
             boardUI.style.gridTemplateColumns = `repeat(${target.length}, ${cellSize}px)`;
             
             for (let i = 0; i < 6 * target.length; i++) {
@@ -196,19 +325,16 @@
                 cell.className = 'cell';
                 cell.style.width = cellSize + 'px';
                 cell.style.height = cellSize + 'px';
-                cell.style.fontSize = (cellSize / 2.2) + 'px';
                 cell.id = `cell-${Math.floor(i/target.length)}-${i%target.length}`;
                 boardUI.appendChild(cell);
             }
 
-            updateDots();
             document.getElementById('hint-box').innerText = '';
-            document.getElementById('modal-overlay').style.display = 'none';
             row = 0; col = 0; gameOver = false;
         }
 
         document.addEventListener('keydown', (e) => {
-            if (gameOver || document.getElementById('game-screen').style.display === 'none') return;
+            if (isQuizMode || gameOver || document.getElementById('game-screen').style.display === 'none') return;
             const target = currentDifficulty[level];
             
             if (e.key === 'Enter') {
@@ -216,9 +342,12 @@
             } else if (e.key === 'Backspace' && col > 0) {
                 col--; 
                 document.getElementById(`cell-${row}-${col}`).innerText = '';
-            } else if (/^[а-яА-ЯөӨәӘіІңҢғҒүҮұҰқҚһҺёЁa-zA-Z]$/.test(e.key) && col < target.length) {
-                document.getElementById(`cell-${row}-${col}`).innerText = e.key.toUpperCase();
-                col++;
+            } else if (col < target.length) {
+                const validChar = /^[а-яА-ЯөӨәӘіІңҢғҒүҮұҰқҚһҺёЁa-zA-Z0-9=\+\*\-]$/.test(e.key);
+                if (validChar) {
+                    document.getElementById(`cell-${row}-${col}`).innerText = e.key.toUpperCase();
+                    col++;
+                }
             }
         });
 
@@ -255,42 +384,44 @@
 
             if (guess === target) {
                 level++;
-                setTimeout(() => showModal(target, true), 500);
+                setTimeout(() => showModal(target, true, descriptions[target]), 500);
             } else {
-                row++; col = 0; 
-                if (row >= 3) document.getElementById('hint-box').innerText = "ПОДСКАЗКА: " + hints[target];
+                energy -= 20; 
+                updateEnergyUI();
                 
-                // ИСПРАВЛЕНИЕ: Проверяем, достигнут ли лимит в 6 попыток
-                if (row >= 6) {
+                if (energy <= 0) {
                     setTimeout(() => showModal(target, false), 500);
                 } else {
-                    gameOver = false; // Возвращаем управление только если есть попытки
+                    row++; col = 0;
+                    if (row >= 3) document.getElementById('hint-box').innerText = "ПОДСКАЗКА: " + hints[target];
+                    if (row >= 6) {
+                         setTimeout(() => showModal(target, false), 500);
+                    } else {
+                        gameOver = false;
+                    }
                 }
             }
         }
 
-        function showModal(word, isWin) {
+        function showModal(title, isWin, desc = "") {
             const overlay = document.getElementById('modal-overlay');
             const btn = document.getElementById('modal-btn');
-            
             overlay.style.display = 'flex';
-            document.getElementById('modal-word').innerText = word;
+            document.getElementById('modal-word').innerText = title;
 
             if (isWin) {
-                document.getElementById('modal-desc').innerText = descriptions[word];
-
+                document.getElementById('modal-desc').innerText = desc;
                 if (level < currentDifficulty.length) {
-                    btn.innerText = "КЕЛЕСІ СӨЗ";
-                    btn.onclick = initBoard;
+                    btn.innerText = "КЕЛЕСІ";
+                    btn.onclick = initLevel;
                 } else {
                     updateDots();
-                    document.getElementById('modal-desc').innerText = descriptions[word];
-                    btn.innerText = "В ГЛАВНОЕ МЕНЮ";
-                    // Исправлено: явный вызов функции
-                    btn.onclick = function() { showMenu(); };
+                    document.getElementById('modal-desc').innerText = "ВСЕ!";
+                    btn.innerText = "МӘЗІРГЕ ҚАЙТУ";
+                    btn.onclick = showMenu;
                 }
             } else {
-                document.getElementById('modal-desc').innerText = "ПОПЫТКА БІТТІ! ҚАЙТА КӨР";
+                document.getElementById('modal-desc').innerText = energy <= 0 ? "ЭНЕРГИЯ ТАУСЫЛДЫ! ҚАЙТА КӨРІҢІЗ" : "ПОПЫТКИ ЗАКОНЧИЛИСЬ!";
                 btn.innerText = "НАЧАТЬ ЗАНОВО";
                 btn.onclick = () => startGame(currentDifficultyKey);
             }
