@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Физика Wordle</title>
+    <title>Физика Wordle + Energy</title>
     <style>
         html, body {
             height: 100%; margin: 0; background-color: #121213; color: white;
-            font-family: "Nunito", sans-serif; display: flex; flex-direction: column; overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column; overflow: hidden;
         }
         
         header { text-align: center; padding: 15px; flex-shrink: 0; position: relative; border-bottom: 1px solid #3a3a3c; }
@@ -141,7 +141,7 @@
         const quizData = [
             {
                 title: "ЭЙНШТЕЙН ТЕҢДЕУІ",
-                question: "Фотоэффектке арналған Эйнштейн теңдеуін көрсетіңіз:",
+                question: "Эйнштейн теңдеуінің формуласы:",
                 options: {
                     A: "hν = A_шығу + mv²/2",
                     B: "hν = A_шығу - mv²/2",
@@ -153,7 +153,7 @@
             },
             {
                 title: "ҚЫЗЫЛ ШЕКАРА",
-                question: "Фотоэффекттің қызыл шекарасын (минимал жиілік) анықтайтын дұрыс формуланы табыңыз:",
+                question: "Фотоэффекттің қызыл шекарасын анықтайтын формула",
                 options: {
                     A: "ν_min = h / A_шығу",
                     B: "ν_min = A_шығу / h",
@@ -165,7 +165,7 @@
             },
             {
                 title: "МЕХАНИКАЛЫҚ ЖҰМЫС",
-                question: "Күш векторы мен қозғалыс бағыты арасында α бұрышы болған кездегі механикалық жұмыс:",
+                question: "Механикалық жұмыс формуласы:",
                 options: {
                     A: "A = F · s · sin(α)",
                     B: "A = m · a · s",
@@ -177,7 +177,7 @@
             },
             {
                 title: "КИНЕТИКАЛЫҚ ЭНЕРГИЯ",
-                question: "Ілгерілемелі қозғалыстағы дененің кинетикалық энергиясы:",
+                question: "Кинетикалық энергиянын формуласы:",
                 options: {
                     A: "E_k = kx² / 2",
                     B: "E_k = mv² / 2",
@@ -417,11 +417,11 @@
                 } else {
                     updateDots();
                     document.getElementById('modal-desc').innerText = "ВСЕ!";
-                    btn.innerText = "МӘЗІРГЕ ҚАЙТУ";
+                    btn.innerText = "В ГЛАВНОЕ МЕНЮ";
                     btn.onclick = showMenu;
                 }
             } else {
-                document.getElementById('modal-desc').innerText = energy <= 0 ? "ЭНЕРГИЯ ТАУСЫЛДЫ! ҚАЙТА КӨРІҢІЗ" : "ПОПЫТКИ ЗАКОНЧИЛИСЬ!";
+                document.getElementById('modal-desc').innerText = energy <= 0 ? "ЭНЕРГИЯ ТАУСЫЛДЫ! ҚАЙТА КӨРІҢІЗ" : "ПОПЫТКА БІТТІ!";
                 btn.innerText = "НАЧАТЬ ЗАНОВО";
                 btn.onclick = () => startGame(currentDifficultyKey);
             }
@@ -429,4 +429,3 @@
     </script>
 </body>
 </html>
-
